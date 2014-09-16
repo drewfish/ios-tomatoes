@@ -71,7 +71,7 @@
             </objects>
             <point key="canvasLocation" x="1333" y="705"/>
         </scene>
-        <!--Movies-->
+        <!--Box Office-->
         <scene sceneID="0uN-Z9-i2u">
             <objects>
                 <viewController automaticallyAdjustsScrollViewInsets="NO" id="7sG-MC-vyj" customClass="MoviesViewController" customModule="tomatoes" customModuleProvider="target" sceneMemberID="viewController">
@@ -142,7 +142,7 @@
                         <color key="backgroundColor" cocoaTouchSystemColor="scrollViewTexturedBackgroundColor"/>
                     </view>
                     <extendedEdge key="edgesForExtendedLayout"/>
-                    <navigationItem key="navigationItem" title="Movies" id="RyQ-eg-Df3"/>
+                    <navigationItem key="navigationItem" title="Box Office" id="RyQ-eg-Df3"/>
                     <simulatedOrientationMetrics key="simulatedOrientationMetrics"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
                     <connections>
@@ -243,11 +243,11 @@
             </objects>
             <point key="canvasLocation" x="237" y="404"/>
         </scene>
-        <!--Movies-->
+        <!--Box Office-->
         <scene sceneID="2Ob-v7-3S7">
             <objects>
                 <navigationController autoresizesArchivedViewToFullSize="NO" automaticallyAdjustsScrollViewInsets="NO" id="WxL-kr-wJi" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Movies" id="g9P-EE-iCE"/>
+                    <tabBarItem key="tabBarItem" title="Box Office" id="g9P-EE-iCE"/>
                     <toolbarItems/>
                     <simulatedOrientationMetrics key="simulatedOrientationMetrics"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
@@ -302,7 +302,7 @@
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="ciL-qQ-QGi"/>
+        <segue reference="Ijq-Yg-A1e"/>
     </inferredMetricsTieBreakers>
     <color key="tintColor" red="0.0" green="0.38729671560000001" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
 </document>
