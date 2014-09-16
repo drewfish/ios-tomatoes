@@ -29,7 +29,10 @@ class MoviesModel {
         }
 
         url = url! + "?apikey=" + API_KEY
-        runTomatoQuery(url!, done: done)
+        runTomatoQuery(url!, done: {
+            (error: NSError?, data: NSDictionary?) in
+            done(error, data?["movies"] as? NSArray ?? nil)
+        })
     }
 
 
@@ -37,11 +40,14 @@ class MoviesModel {
         var url = URL_SEARCH_MOVIES
         url += "&q=\(search)"
         url = url + "&apikey=" + API_KEY
-        runTomatoQuery(url, done: done)
+        runTomatoQuery(url, done: {
+            (error: NSError?, data: NSDictionary?) in
+            done(error, data?["movies"] as? NSArray ?? nil)
+        })
     }
 
 
-    private func runTomatoQuery(url: String, done: (NSError?, NSArray?) -> Void) {
+    private func runTomatoQuery(url: String, done: (NSError?, NSDictionary?) -> Void) {
         var request = NSURLRequest(URL: NSURL(string: url))
         NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue(), completionHandler: {
             (response: NSURLResponse!, data: NSData!, error: NSError!) in
@@ -55,7 +61,7 @@ class MoviesModel {
                 done(errorValue, nil)
                 return
             }
-            done(nil, json?["movies"] as? NSArray)
+            done(nil, json)
         })
     }
 

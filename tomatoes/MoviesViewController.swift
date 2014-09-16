@@ -9,19 +9,82 @@
 import UIKit
 
 
-class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
+class MoviesCellDelegate: NSObject, UITableViewDataSource, UITableViewDelegate {
+    let name: String                        // for debugging
+    var movies: NSArray?                    // movies to show
+    weak var loader: UIViewController?      // who can load more movies
+    weak var cellSource: UITableView?       // who can generate cells
+    weak var tableView: UITableView?        // who can display cells
+    var refreshControl: UIRefreshControl
+
+    init(name: String, loader: UIViewController, cellSource: UITableView, tableView: UITableView) {
+        self.name = name
+        self.movies = []
+        self.loader = loader
+        self.cellSource = cellSource
+        self.tableView = tableView
+        refreshControl = UIRefreshControl()
+
+        super.init()
+
+        self.tableView!.delegate = self
+        self.tableView!.dataSource = self
+
+        refreshControl.attributedTitle = NSAttributedString(string:"pull to refresh")
+        // this "loader" approach is messy/hacky :(
+        refreshControl.addTarget(loader, action: "loadData:", forControlEvents: UIControlEvents.ValueChanged)
+        tableView.addSubview(refreshControl)
+
+        // style search results table
+        if tableView !== cellSource {
+            tableView.rowHeight = cellSource.rowHeight
+            tableView.backgroundColor = cellSource.backgroundColor
+            tableView.separatorStyle = cellSource.separatorStyle
+            tableView.separatorColor = cellSource.separatorColor
+        }
+    }
+
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return movies?.count ?? 0
+    }
+
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        var movie = movies?[indexPath.row] as NSDictionary
+        var cell = self.cellSource!.dequeueReusableCellWithIdentifier("MovieCell") as MovieCell
+        cell.movieID            = (movie["id"] as String).toInt()
+        cell.titleView.text     = movie["title"] as? String ?? "..."
+        cell.synopsisView.text  = movie["synopsis"] as? String ?? "..."
+        var thumbURL = (movie["posters"] as [String: String])["thumbnail"]
+        cell.posterView.setImageWithURL(NSURL(string: thumbURL!))
+        return cell
+    }
+}
+
+
+class MoviesViewController: UIViewController, UISearchDisplayDelegate, UISearchBarDelegate {
+    var searchTerm: String?
+    var listMoviesDelegate: MoviesCellDelegate?
+    var searchMoviesDelegate: MoviesCellDelegate?
+    var currentMoviesDelegate: MoviesCellDelegate?
 
     @IBOutlet weak var moviesView: UITableView!
-    @IBOutlet weak var searchView: UISearchBar!
     @IBOutlet weak var noticeLabel: UILabel!
-    var movies: NSArray?
 
-    func startLoad() {
+    func loadData(sender: AnyObject) {
+        noticeLabel.hidden = true
         // clear list
-        movies = []
-        moviesView.reloadData()
+        currentMoviesDelegate!.movies = []
+        currentMoviesDelegate!.tableView!.reloadData()
+        currentMoviesDelegate!.refreshControl.endRefreshing()
         // show loading indicator
         MMProgressHUD.showWithStatus("Loading...")
+
+        if let gotSearchTerm = searchTerm {
+            moviesModel.seachMovies(gotSearchTerm, doneLoad)
+        }
+        else {
+            moviesModel.listMovies("movies", doneLoad)
+        }
     }
 
     func doneLoad(error: NSError?, data: NSArray?) {
@@ -32,64 +95,44 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
             return
         }
         if data != nil {
-            self.movies = data
-            self.moviesView.reloadData()
+            self.currentMoviesDelegate!.movies = data
+            self.currentMoviesDelegate!.tableView!.reloadData()
         }
     }
 
     func listMovies() {
-        startLoad()
-        moviesModel.listMovies("movies", doneLoad)
+        searchTerm = nil
+        loadData(self)
     }
 
     func searchMovies(search: String) {
-        startLoad()
-        moviesModel.seachMovies(search, doneLoad)
+        searchTerm = search
+        loadData(self)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        moviesView.delegate = self
-        moviesView.dataSource = self
-        searchView.delegate = self
+        listMoviesDelegate = MoviesCellDelegate(name: "list", loader: self, cellSource: moviesView, tableView: moviesView)
+        searchMoviesDelegate = MoviesCellDelegate(name: "search", loader: self, cellSource: moviesView, tableView: self.searchDisplayController!.searchResultsTableView)
+        currentMoviesDelegate = listMoviesDelegate
         listMovies()
     }
 
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return movies?.count ?? 0
+    func searchDisplayControllerWillBeginSearch(controller: UISearchDisplayController) {
+        currentMoviesDelegate = searchMoviesDelegate
     }
-
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        var movie = movies?[indexPath.row] as NSDictionary
-        var cell = tableView.dequeueReusableCellWithIdentifier("MovieCell") as MovieCell
-        cell.movieID = (movie["id"] as String).toInt()
-        cell.titleView.text = movie["title"] as? String ?? "..."
-        cell.synopsisView.text = movie["synopsis"] as? String ?? "..."
-        var thumbURL = (movie["posters"] as [String: String])["thumbnail"]
-        cell.posterView.setImageWithURL(NSURL(string: thumbURL!))
-        return cell
-    }
-
+    
     func searchBarSearchButtonClicked(searchBar: UISearchBar) {
-        searchBar.resignFirstResponder()
         searchMovies(searchBar.text)
     }
 
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
-        searchBar.resignFirstResponder()
-        listMovies()
+        currentMoviesDelegate = listMoviesDelegate
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-    
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue?, sender: AnyObject!) {
         var cell = sender as MovieCell
         var movieDetail = segue?.destinationViewController as MovieDetailViewController
         movieDetail.movieID = cell.movieID
     }
-
 }
