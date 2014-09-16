@@ -119,6 +119,8 @@ class MoviesViewController: UIViewController, UISearchDisplayDelegate, UISearchB
     }
 
     func searchDisplayControllerWillBeginSearch(controller: UISearchDisplayController) {
+        searchTerm = nil
+        searchMoviesDelegate!.movies = []
         currentMoviesDelegate = searchMoviesDelegate
     }
     
@@ -127,6 +129,7 @@ class MoviesViewController: UIViewController, UISearchDisplayDelegate, UISearchB
     }
 
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
+        searchTerm = nil
         currentMoviesDelegate = listMoviesDelegate
     }
 

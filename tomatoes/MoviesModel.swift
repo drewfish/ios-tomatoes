@@ -15,7 +15,8 @@ class MoviesModel {
         "dvds":     "http://api.rottentomatoes.com/api/public/v1.0/lists/dvds/top_rentals.json",
         "movies":   "http://api.rottentomatoes.com/api/public/v1.0/lists/movies/in_theaters.json"
     ]
-    private let URL_SEARCH_MOVIES = "http://api.rottentomatoes.com/api/public/v1.0/movies.json?page_limit=15&page=1"
+    private let URL_SEARCH_MOVIES = "http://api.rottentomatoes.com/api/public/v1.0/movies.json?page_limit=20&page=1"
+    private let URL_MOVIE = "http://api.rottentomatoes.com/api/public/v1.0/movies/{movieID}.json"
 
 
     func listMovies(type: String, done: (NSError?, NSArray?) -> Void) {
@@ -44,6 +45,13 @@ class MoviesModel {
             (error: NSError?, data: NSDictionary?) in
             done(error, data?["movies"] as? NSArray ?? nil)
         })
+    }
+
+
+    func getMovie(movieID: Int, done: (NSError?, NSDictionary?) -> Void) {
+        var url = URL_MOVIE.stringByReplacingOccurrencesOfString("{movieID}", withString: "\(movieID)")
+        url = url + "?apikey=" + API_KEY
+        runTomatoQuery(url, done)
     }
 
 
